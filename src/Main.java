@@ -6,18 +6,38 @@ import java.util.Scanner;
 public class Main {
 
     public static void main(String[] args) throws IOException {
+        Testing testing = new Testing();
         File file = new File("code.txt");
-        Scanner sc = new Scanner(file);
-        String code="";
-        Testing init = new Testing();
-        while (sc.hasNextLine()){
-            code=sc.nextLine();
-            String A[] = code.split(" ",2);
-            Instruction i = Hashmap.insHash.get(A[0]);
-            String B[] = A[1].split(",");
-            i.Op(B[0],B[1],B[2]);
-
+        Scanner Reader = new Scanner(file);
+        String[] final_array = new String[10000];
+        for(int i=0; i<10000; i++){
+            final_array[i] = "1";
         }
+        int index = 0;
+        while(Reader.hasNextLine()){
+            int a = index;
+            String data = Reader.nextLine();
+            data = data.replace(",", " ");
+            data = data.replace("(", " ");
+            data = data.replace(")", " ");
+            String[] array = data.split(" ");
+
+            for(int i=0; i<array.length; i++){
+                if(!array[i].equals("")){
+                    final_array[index] = array[i];
+                    index++;
+                }
+            }
+            index = a + 4;
+        }
+        for(int i=0; i<index; i=i+4){
+            System.out.println(final_array[i] + " " + final_array[i+1] + " " + final_array[i+2] + " " + final_array[i+3]);
+        }
+        for(int i=0; i<index; i = i+4){
+            Instruction in = Hashmap.insHash.get(final_array[i]);
+            in.Op(final_array[i+1], final_array[i+2], final_array[i+3]);
+        }
+
     }
 }
 
@@ -73,6 +93,7 @@ class Testing {
             Hashmap.regHash.get(a).regInt=A;
         }
     };
+
     static Instruction sub = new Instruction(1) {
         @Override
         void Op(String a, String b, String c) {
@@ -110,6 +131,15 @@ class Testing {
             Hashmap.regHash.get(a).regInt=B;
         }
     };
+    static Instruction addi = new Instruction(1){
+        @Override
+        void Op(String a, String b, String c){
+            int A = Hashmap.regHash.get(b).regInt;
+            int B = Integer.parseInt(c);
+            Hashmap.regHash.get(a).regInt = A + B;
+        }
+    };
+
     Testing(){
         Hashmap.regHash.put("r0",r0);
         Hashmap.regHash.put("at",r1);
@@ -146,6 +176,7 @@ class Testing {
 
         Hashmap.insHash.put("add",add);
         Hashmap.insHash.put("sub",sub);
+        Hashmap.insHash.put("addi", addi);
         Hashmap.insHash.put("lw",lw);
         Hashmap.insHash.put("li",li);
     }
