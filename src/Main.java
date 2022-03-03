@@ -1,9 +1,6 @@
-import javax.swing.*;
 import java.io.File;
-import java.io.FileReader;
 import java.io.IOException;
 import java.util.HashMap;
-import java.util.Objects;
 import java.util.Scanner;
 
 public class Main {
@@ -12,7 +9,7 @@ public class Main {
         File file = new File("code.txt");
         Scanner sc = new Scanner(file);
         String code="";
-        Init init = new Init();
+        Testing init = new Testing();
         while (sc.hasNextLine()){
             code=sc.nextLine();
             String A[] = code.split(" ",2);
@@ -22,6 +19,7 @@ public class Main {
         }
     }
 }
+
 class Register{
     int regCode;
     int regInt;
@@ -29,9 +27,9 @@ class Register{
         this.regCode=regCode;
         this.regInt=regInt;
     }
-
 }
-class Init{
+
+class Testing {
     static Register r0 = new Register(0,0);
     static Register r1 = new Register(1,0);
     static Register r2 = new Register(2,0);
@@ -64,6 +62,7 @@ class Init{
     static Register r29 = new Register(29,0);
     static Register r30 = new Register(30,0);
     static Register r31 = new Register(31,0);
+
     static Instruction add = new Instruction(0) {
         @Override
         void Op(String a, String b, String c) {
@@ -79,21 +78,38 @@ class Init{
             int B = Hashmap.regHash.get(b).regInt;
             int C = Hashmap.regHash.get(c).regInt;
             int A = B - C;
-            Register x = Hashmap.regHash.get(a);
-            x.regInt=A;
+            Hashmap.regHash.get(a).regInt=A;
         }
     };
     static Instruction lw = new Instruction(2) {
         @Override
         void Op(String a, String b, String c) {
             int B = Hashmap.regHash.get(b).regInt;
-            int C = Hashmap.regHash.get(c).regInt;
-            int A = B - C;
-            Register x = Hashmap.regHash.get(a);
-            x.regInt=A;
+
         }
     };
-    Init(){
+    static Instruction move = new Instruction(3) {
+        @Override
+        void Op(String a, String b, String c) {
+            int B = Hashmap.regHash.get(b).regInt;
+            Hashmap.regHash.get(a).regInt=B;
+        }
+    };
+    static Instruction li = new Instruction(4) {
+        @Override
+        void Op(String a, String b, String c) {
+            int B = Integer.parseInt(b);
+            Hashmap.regHash.get(a).regInt=B;
+        }
+    };
+    static Instruction j = new Instruction(3) {
+        @Override
+        void Op(String a, String b, String c) {
+            int B = Hashmap.regHash.get(b).regInt;
+            Hashmap.regHash.get(a).regInt=B;
+        }
+    };
+    Testing(){
         Hashmap.regHash.put("r0",r0);
         Hashmap.regHash.put("at",r1);
         Hashmap.regHash.put("v0",r2);
@@ -128,12 +144,49 @@ class Init{
         Hashmap.regHash.put("ra",r31);
 
         Hashmap.insHash.put("add",add);
+        Hashmap.insHash.put("sub",sub);
+    }
+
+    public static void printRegisters(){
+        System.out.println("   Register Name      Value in Register");
+        System.out.println("      R0  (r0)              " + r0.regInt);
+        System.out.println("      R1  (at)              " + r1.regInt);
+        System.out.println("      R2  (v0)              " + r2.regInt);
+        System.out.println("      R3  (v1)              " + r3.regInt);
+        System.out.println("      R4  (a0)              " + r4.regInt);
+        System.out.println("      R5  (a1)              " + r5.regInt);
+        System.out.println("      R6  (a2)              " + r6.regInt);
+        System.out.println("      R7  (a3)              " + r7.regInt);
+        System.out.println("      R8  (t0)              " + r8.regInt);
+        System.out.println("      R9  (t1)              " + r9.regInt);
+        System.out.println("      R10 (t2)              " + r10.regInt);
+        System.out.println("      R11 (t3)              " + r11.regInt);
+        System.out.println("      R12 (t4)              " + r12.regInt);
+        System.out.println("      R13 (t5)              " + r13.regInt);
+        System.out.println("      R14 (t6)              " + r14.regInt);
+        System.out.println("      R15 (t7)              " + r15.regInt);
+        System.out.println("      R16 (s0)              " + r16.regInt);
+        System.out.println("      R17 (s1)              " + r17.regInt);
+        System.out.println("      R18 (s2)              " + r18.regInt);
+        System.out.println("      R19 (s3)              " + r19.regInt);
+        System.out.println("      R20 (s4)              " + r20.regInt);
+        System.out.println("      R21 (s5)              " + r21.regInt);
+        System.out.println("      R22 (s6)              " + r22.regInt);
+        System.out.println("      R23 (s7)              " + r23.regInt);
+        System.out.println("      R24 (t8)              " + r24.regInt);
+        System.out.println("      R25 (t9)              " + r25.regInt);
+        System.out.println("      R26 (k0)              " + r26.regInt);
+        System.out.println("      R27 (k1)              " + r27.regInt);
+        System.out.println("      R28 (gp)              " + r28.regInt);
+        System.out.println("      R29 (sp)              " + r29.regInt);
+        System.out.println("      R30 (s8)              " + r30.regInt);
+        System.out.println("      R31 (ra)              " + r31.regInt);
     }
 
 }
 
 class Memory{
-    static Object[] Mem = new Object[4096];
+    static byte[] Mem = new byte[4096];
     Memory(){
 
     }
@@ -143,9 +196,11 @@ abstract class Instruction{
     Instruction(int t){
         inc=t;
     }
-    abstract void Op(String a,String b,String c);
+    abstract void Op(String a, String b, String c);
 }
+
 class Hashmap {
     static HashMap<String,Register> regHash = new HashMap<>();
-    static HashMap<String,Instruction>insHash = new HashMap<>();
+    static HashMap<String,Instruction> insHash = new HashMap<>();
+    static HashMap<String,Memory> memHash = new HashMap<>();
 }
