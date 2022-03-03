@@ -30,9 +30,6 @@ public class Main {
             }
             index = a + 4;
         }
-        for(int i=0; i<index; i=i+4){
-            System.out.println(final_array[i] + " " + final_array[i+1] + " " + final_array[i+2] + " " + final_array[i+3]);
-        }
         for(int i=0; i<index; i = i+4){
             Instruction in = Hashmap.insHash.get(final_array[i]);
             in.Op(final_array[i+1], final_array[i+2], final_array[i+3]);
@@ -83,7 +80,7 @@ class Testing {
     static Register r29 = new Register(29,0);
     static Register r30 = new Register(30,0);
     static Register r31 = new Register(31,0);
-
+/*-----------------------Arithmetic code 0---------------------------*/
     static Instruction add = new Instruction(0) {
         @Override
         void Op(String a, String b, String c) {
@@ -94,7 +91,7 @@ class Testing {
         }
     };
 
-    static Instruction sub = new Instruction(1) {
+    static Instruction sub = new Instruction(0) {
         @Override
         void Op(String a, String b, String c) {
             int B = Hashmap.regHash.get(b).regInt;
@@ -103,27 +100,75 @@ class Testing {
             Hashmap.regHash.get(a).regInt=A;
         }
     };
-    static Instruction lw = new Instruction(2) {
+    static Instruction addi = new Instruction(0){
         @Override
-        void Op(String a, String b, String c) {
+        void Op(String a, String b, String c){
             int B = Hashmap.regHash.get(b).regInt;
-
+            int C = Integer.parseInt(c);
+            Hashmap.regHash.get(a).regInt = B + C;
         }
     };
-    static Instruction move = new Instruction(3) {
+    static Instruction mul = new Instruction(0){
+        @Override
+        void Op(String a, String b, String c){
+            int B = Hashmap.regHash.get(b).regInt;
+            int C = Hashmap.regHash.get(c).regInt;
+            int A = B * C;
+            Hashmap.regHash.get(a).regInt=A;
+        }
+    };
+/*-----------------------Data transfer code 1---------------------------*/
+    static Instruction lw = new Instruction(1) {
+        @Override
+        void Op(String a, String b, String c) {
+            int B;
+            try {
+                B = Integer.parseInt(b);
+            }
+            catch (NumberFormatException e) {
+                B=Hashmap.memHash.get(b);
+            }
+            int C = Hashmap.regHash.get(c).regInt;
+            int X = C + B;
+            int A = Memory.Mem[X] << 24 | (Memory.Mem[X+1] & 0xFF) << 16 | (Memory.Mem[X+2] & 0xFF) << 8 | (Memory.Mem[X+3] & 0xFF);
+            Hashmap.regHash.get(a).regInt= A;
+        }
+    };
+    static Instruction sw = new Instruction(1) {
+        @Override
+        void Op(String a, String b, String c) {
+            int B;
+            try {
+                B = Integer.parseInt(b);
+            }
+            catch (NumberFormatException e) {
+                B=Hashmap.memHash.get(b);
+            }
+            int C = Hashmap.regHash.get(c).regInt;
+            int X = C + B;
+            int A = Hashmap.regHash.get(a).regInt;
+            Memory.Mem[X]=(byte)(A>>24);
+            Memory.Mem[X+1]=(byte)(A>>16);
+            Memory.Mem[X+2]=(byte)(A>>8);
+            Memory.Mem[X+3]=(byte)(A);
+        }
+    };
+/*-----------------------Data transfer code 2---------------------------*/
+    static Instruction move = new Instruction(2) {
         @Override
         void Op(String a, String b, String c) {
             int B = Hashmap.regHash.get(b).regInt;
             Hashmap.regHash.get(a).regInt=B;
         }
     };
-    static Instruction li = new Instruction(4) {
+    static Instruction li = new Instruction(2) {
         @Override
         void Op(String a, String b, String c) {
             int B = Integer.parseInt(b);
             Hashmap.regHash.get(a).regInt=B;
         }
     };
+/*-----------------------Unconditional jump code 3---------------------------*/
     static Instruction j = new Instruction(3) {
         @Override
         void Op(String a, String b, String c) {
@@ -131,14 +176,14 @@ class Testing {
             Hashmap.regHash.get(a).regInt=B;
         }
     };
-    static Instruction addi = new Instruction(1){
+    static Instruction jr = new Instruction(3) {
         @Override
-        void Op(String a, String b, String c){
-            int A = Hashmap.regHash.get(b).regInt;
-            int B = Integer.parseInt(c);
-            Hashmap.regHash.get(a).regInt = A + B;
+        void Op(String a, String b, String c) {
+            int B = Hashmap.regHash.get(b).regInt;
+            Hashmap.regHash.get(a).regInt=B;
         }
     };
+
 
     Testing(){
         Hashmap.regHash.put("r0",r0);
@@ -176,9 +221,13 @@ class Testing {
 
         Hashmap.insHash.put("add",add);
         Hashmap.insHash.put("sub",sub);
-        Hashmap.insHash.put("addi", addi);
+        Hashmap.insHash.put("addi",addi);
         Hashmap.insHash.put("lw",lw);
+        Hashmap.insHash.put("sw",sw);
         Hashmap.insHash.put("li",li);
+        Hashmap.insHash.put("move",move);
+        Hashmap.insHash.put("j",j);
+        Hashmap.insHash.put("jr",jr);
     }
 
     public static void printRegisters(){
@@ -221,9 +270,7 @@ class Testing {
 
 class Memory{
     static byte[] Mem = new byte[4096];
-    Memory(){
-
-    }
+    static int i = 0;
 }
 abstract class Instruction{
     int inc;
@@ -236,5 +283,5 @@ abstract class Instruction{
 class Hashmap {
     static HashMap<String,Register> regHash = new HashMap<>();
     static HashMap<String,Instruction> insHash = new HashMap<>();
-    static HashMap<String,Memory> memHash = new HashMap<>();
+    static HashMap<String,Integer> memHash = new HashMap<>();
 }
