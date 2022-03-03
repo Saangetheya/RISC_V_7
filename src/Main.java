@@ -16,6 +16,7 @@ public class Main {
             Instruction i = Hashmap.insHash.get(A[0]);
             String B[] = A[1].split(",");
             i.Op(B[0],B[1],B[2]);
+
         }
     }
 }
