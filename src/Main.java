@@ -146,6 +146,8 @@ class Testing {
 
         Hashmap.insHash.put("add",add);
         Hashmap.insHash.put("sub",sub);
+        Hashmap.insHash.put("lw",lw);
+        Hashmap.insHash.put("li",li);
     }
 
     public static void printRegisters(){
