@@ -41,9 +41,9 @@ class Init{
     static Register r6 = new Register(6,0);
     static Register r7 = new Register(7,0);
     static Register r8 = new Register(8,0);
-    static Register r9 = new Register(9,2);
-    static Register r10 = new Register(10,3);
-    static Register r11 = new Register(11,2);
+    static Register r9 = new Register(9,0);
+    static Register r10 = new Register(10,0);
+    static Register r11 = new Register(11,0);
     static Register r12 = new Register(12,0);
     static Register r13 = new Register(13,0);
     static Register r14 = new Register(14,0);
