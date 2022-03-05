@@ -41,13 +41,13 @@ public class Main {
             if(onlytext&&ch.charAt(ch.length() - 1) == ':') {
                 label = true;
                 StringBuilder str = new StringBuilder(ch);
-                    ch=str.deleteCharAt(str.length()-1).toString();
-                    Hashmap.labelHash.put(ch,Memory.pc);
-                    xc[i]="";
-                    for (int f=0;f<xc.length;++f){
-                        stringBuilder.append(xc[f]);
-                        stringBuilder.append(" ");
-                    }
+                ch=str.deleteCharAt(str.length()-1).toString();
+                Hashmap.labelHash.put(ch,Memory.pc);
+                xc[i]="";
+                for (int f=0;f<xc.length;++f){
+                    stringBuilder.append(xc[f]);
+                    stringBuilder.append(" ");
+                }
             }
             if(label) {
                 Hashmap.pcHash.put(Memory.pc,stringBuilder.toString());
@@ -251,6 +251,14 @@ class Testing {
             Memory.Mem[X+3]=(byte)(A);
         }
     };
+    /* ----------------------Load Address Code----------------------------- */
+    static Instruction la = new Instruction(5) {
+        @Override
+        void Op(String a, String b, String c){
+            int address = Hashmap.memHash.get(b);
+            Hashmap.regHash.get(a).regInt = address;
+        }
+    };
     /*-----------------------Data transfer code 2---------------------------*/
     static Instruction mv = new Instruction(2) {
         @Override
@@ -334,6 +342,7 @@ class Testing {
         Hashmap.insHash.put("mv",mv);
         Hashmap.insHash.put("j",j);
         Hashmap.insHash.put("jr",jr);
+        Hashmap.insHash.put("la", la);
     }
 
     public static void printRegisters(){
