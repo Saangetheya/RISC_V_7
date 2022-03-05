@@ -1,40 +1,136 @@
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Scanner;
 
 public class Main {
 
     public static void main(String[] args) throws IOException {
+
         Testing testing = new Testing();
-        File file = new File("code.txt");
+        File file = new File("add.txt");
         Scanner Reader = new Scanner(file);
-        String[] final_array = new String[10000];
-        for(int i=0; i<10000; i++){
+        String[] final_array = new String[10];//.text part
+        for(int i=0; i<10; i++){
             final_array[i] = "1";
         }
-        int index = 0;
-        while(Reader.hasNextLine()){
-            int a = index;
-            String data = Reader.nextLine();
-            data = data.replace(",", " ");
-            data = data.replace("(", " ");
-            data = data.replace(")", " ");
-            String[] array = data.split(" ");
 
-            for(int i=0; i<array.length; i++){
-                if(!array[i].equals("")){
-                    final_array[index] = array[i];
-                    index++;
+        ArrayList<String> final_array1 = new ArrayList<String>();
+        boolean onlytext=false;
+        String ch ="x";
+        while (Reader.hasNextLine()){
+            String x = Reader.nextLine();
+            String[] xc = x.split(" ");
+            int i=0;
+            for(i=0; i<xc.length; i++){
+                if(!xc[i].equals("")){
+                    ch = xc[i];
+                    break;
                 }
             }
-            index = a + 4;
-        }
-        for(int i=0; i<index; i = i+4){
-            Instruction in = Hashmap.insHash.get(final_array[i]);
-            in.Op(final_array[i+1], final_array[i+2], final_array[i+3]);
+            if(ch.equals(null)||ch.equals("x")){
+                continue;
+            }
+            if(ch.equals(".text")){
+                onlytext=true;
+            }
+            boolean label = false;
+            StringBuilder stringBuilder = new StringBuilder("");
+            if(onlytext&&ch.charAt(ch.length() - 1) == ':') {
+                label = true;
+                StringBuilder str = new StringBuilder(ch);
+                ch=str.deleteCharAt(str.length()-1).toString();
+                Hashmap.labelHash.put(ch,Memory.pc);
+                xc[i]="";
+                for (int f=0;f<xc.length;++f){
+                    stringBuilder.append(xc[f]);
+                    stringBuilder.append(" ");
+                }
+            }
+            if(label) {
+                Hashmap.pcHash.put(Memory.pc,stringBuilder.toString());
+                System.out.println(stringBuilder.toString());
+            }
+            else{
+                Hashmap.pcHash.put(Memory.pc,x);
+                System.out.println(x);
+            }
+            Memory.pc++;
         }
 
+        int counter = Memory.pc;
+        Memory.pc=0;
+        int index = 0;
+        int TextFound = 0;
+        int DataFound = 0;
+        while(Memory.pc<counter){
+            int a = index;
+            String data = Hashmap.pcHash.get(Memory.pc);
+            String[] check = data.split(" ");
+            String final_check = "0";//
+            for(int i=0; i<check.length; i++){
+                if(!check[i].equals("")){
+                    final_check = check[i];
+                    break;
+                }
+            }
+            if(final_check.equals(null) || final_check.equals("0")){
+                Memory.pc++;
+                continue;
+            }
+            else if(final_check.equals(".text")){
+                TextFound = 1;
+            }
+            else if(DataFound == 1 && TextFound == 0){
+                data = data.replace(",", " ");
+                data = data.replace(":", " ");
+                String[] array = data.split(" ");
+                for(int i=0; i<array.length; i++){
+                    if(!array[i].equals("")){
+                        final_array1.add(array[i]);
+                    }
+                }
+                String s = final_array1.get(0);
+                Hashmap.memHash.put(s, Memory.i);
+                if(final_array1.get(1).equals(".word")){
+                    for(int i=2; i<final_array1.size();i++){
+                        int x = Integer.parseInt(final_array1.get(i));
+                        Memory.Mem[Memory.i]=(byte)(x>>24);
+                        Memory.Mem[Memory.i + 1]=(byte)(x>>16);
+                        Memory.Mem[Memory.i + 2]=(byte)(x>>8);
+                        Memory.Mem[Memory.i + 3]=(byte)(x);
+                        Memory.i = Memory.i + 4;
+                    }
+                }
+                final_array1.clear();
+            }
+            else if(final_check.equals(".data")){
+                DataFound = 1;
+            }
+            else if(TextFound == 1){
+                index=0;
+                data = data.replace(",", " ");
+                data = data.replace("(", " ");
+                data = data.replace(")", " ");
+                data = data.replace("\t"," ");
+                String[] array = data.split(" ");
+                for(int i=0; i<array.length; i++){
+                    if(!array[i].equals("")){
+                        final_array[index] = array[i];
+                        index++;
+                    }
+                }
+                System.out.println(final_array[0]);
+                Instruction in = Hashmap.insHash.get(final_array[0]);
+                in.Op(final_array[1], final_array[2], final_array[3]);
+
+            }
+            Memory.pc++;
+        }
+
+        Testing.printRegisters();
     }
 }
 
@@ -80,7 +176,7 @@ class Testing {
     static Register r29 = new Register(29,0);
     static Register r30 = new Register(30,0);
     static Register r31 = new Register(31,0);
-/*-----------------------Arithmetic code 0---------------------------*/
+    /*-----------------------Arithmetic code 0---------------------------*/
     static Instruction add = new Instruction(0) {
         @Override
         void Op(String a, String b, String c) {
@@ -117,19 +213,21 @@ class Testing {
             Hashmap.regHash.get(a).regInt=A;
         }
     };
-/*-----------------------Data transfer code 1---------------------------*/
+    /*-----------------------Data transfer code 1---------------------------*/
     static Instruction lw = new Instruction(1) {
         @Override
         void Op(String a, String b, String c) {
             int B;
+            int X;
             try {
                 B = Integer.parseInt(b);
+                int C = Hashmap.regHash.get(c).regInt;
+                X = C + B;
             }
             catch (NumberFormatException e) {
                 B=Hashmap.memHash.get(b);
+                X = B;
             }
-            int C = Hashmap.regHash.get(c).regInt;
-            int X = C + B;
             int A = Memory.Mem[X] << 24 | (Memory.Mem[X+1] & 0xFF) << 16 | (Memory.Mem[X+2] & 0xFF) << 8 | (Memory.Mem[X+3] & 0xFF);
             Hashmap.regHash.get(a).regInt= A;
         }
@@ -153,8 +251,8 @@ class Testing {
             Memory.Mem[X+3]=(byte)(A);
         }
     };
-/*-----------------------Data transfer code 2---------------------------*/
-    static Instruction move = new Instruction(2) {
+    /*-----------------------Data transfer code 2---------------------------*/
+    static Instruction mv = new Instruction(2) {
         @Override
         void Op(String a, String b, String c) {
             int B = Hashmap.regHash.get(b).regInt;
@@ -168,19 +266,27 @@ class Testing {
             Hashmap.regHash.get(a).regInt=B;
         }
     };
-/*-----------------------Unconditional jump code 3---------------------------*/
+    /*-----------------------Unconditional jump code 3---------------------------*/
     static Instruction j = new Instruction(3) {
         @Override
         void Op(String a, String b, String c) {
-            int B = Hashmap.regHash.get(b).regInt;
-            Hashmap.regHash.get(a).regInt=B;
+            int pcn = Hashmap.labelHash.get(a);
+            Memory.pc=pcn-1;
         }
     };
     static Instruction jr = new Instruction(3) {
         @Override
         void Op(String a, String b, String c) {
-            int B = Hashmap.regHash.get(b).regInt;
-            Hashmap.regHash.get(a).regInt=B;
+            int A = Hashmap.regHash.get(b).regInt;
+
+        }
+    };
+    static Instruction jal = new Instruction(3) {
+        @Override
+        void Op(String a, String b, String c) {
+            int pcn = Hashmap.labelHash.get(a);
+            r31.regInt=Memory.pc+1;
+            Memory.pc=pcn-1;
         }
     };
 
@@ -225,7 +331,7 @@ class Testing {
         Hashmap.insHash.put("lw",lw);
         Hashmap.insHash.put("sw",sw);
         Hashmap.insHash.put("li",li);
-        Hashmap.insHash.put("move",move);
+        Hashmap.insHash.put("mv",mv);
         Hashmap.insHash.put("j",j);
         Hashmap.insHash.put("jr",jr);
     }
@@ -271,6 +377,7 @@ class Testing {
 class Memory{
     static byte[] Mem = new byte[4096];
     static int i = 0;
+    static int pc = 0;
 }
 abstract class Instruction{
     int inc;
@@ -284,4 +391,6 @@ class Hashmap {
     static HashMap<String,Register> regHash = new HashMap<>();
     static HashMap<String,Instruction> insHash = new HashMap<>();
     static HashMap<String,Integer> memHash = new HashMap<>();
+    static HashMap<Integer,String> pcHash = new HashMap<>();
+    static HashMap<String,Integer> labelHash = new HashMap<>();
 }
