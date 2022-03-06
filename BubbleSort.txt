@@ -1,0 +1,39 @@
+.data
+    array: .word -64, 64, 0, 0, 1, 2 6, 5, 4, 4
+    size: .word 10
+
+.text
+    main:
+    # whatsup bro
+    #how are you doing
+        la t8, array # hello
+        la t9, size #hi
+        lw t9, 0(t9)
+        addi t9, t9, -1
+        li t5, 0
+        outer:
+            beq t5, t9, sorted
+            li t6, 0
+            addi s2, t8, 0
+            sub t7, t9, t5
+        inner: 
+            beq t6, t7, exit
+            lw s0, 0(s2)
+            lw s1, 4(s2)
+            blt s0, s1, less
+            sw s1, 0(s2)
+            sw s0, 4(s2)
+        less:
+            addi t6, t6, 1
+            addi s2, s2, 4
+            jal inner
+        exit:
+            addi t5, t5, 1
+            jal outer
+        sorted:
+            # done sorting
+        
+
+
+
+
