@@ -1,39 +1,38 @@
-.data
-    array: .word -64, 64, 0, 0, 1, 2 6, 5, 4, 4
-    size: .word 10
+.data 
+    arr: .word 9,4,5,6,3,2,1,0,7,8
+    arrsize: .word 10
 
 .text
-    main:
-    # whatsup bro
-    #how are you doing
-        la t8, array # hello
-        la t9, size #hi
-        lw t9, 0(t9)
-        addi t9, t9, -1
-        li t5, 0
-        outer:
-            beq t5, t9, sorted
-            li t6, 0
-            addi s2, t8, 0
-            sub t7, t9, t5
-        inner: 
-            beq t6, t7, exit
-            lw s0, 0(s2)
-            lw s1, 4(s2)
-            blt s0, s1, less
-            sw s1, 0(s2)
-            sw s0, 4(s2)
-        less:
-            addi t6, t6, 1
-            addi s2, s2, 4
-            jal inner
-        exit:
-            addi t5, t5, 1
-            jal outer
-        sorted:
-            # done sorting
+ main:							#this is the main part of the bubble sort algorithm
+ 	  la t0, arr					#loading the address of the array into register t0
+        la t1, arrsize 					#loading t1 with the array size
+        lw t1, 0(t1)					#accessing the memory[val(t9)+0] and storing the word inside t1 		
+        addi t1, t1, -1					#value inside register t1 updated as (t1 - 1)
+        li t2, 0						#loading t2 as 0
+        loop1:						#outer loop
+            beq t2, t1, terminate			#if the value inside t2 and t1 are equal, then terminate
+            li t3, 0					#loading t3 with 0
+            addi t4, t0, 0				#loading t4 with val(t0)+0 
+            sub t5, t1, t2				#subtracting t1 and t2 values and storing the value inside t5
+        loop2: 						#inner loop
+            beq t3, t5, exitcondition		#if val(t3)==val(t5), then control passed to exitcondition
+            lw t6, 0(t4)				#accessing the memory[val(t4)+0] and storing the word inside t6 
+            lw t7, 4(t4)				#accessing the memory[val(t4)+4] and storing the word inside t7
+            blt t6, t7, condition			#if val(t6)<val(t7), then control passed to condition 
+            sw t7, 0(t4)				#store the word inside t7 to Memory[val(t4)+0]
+            sw t6, 4(t4)				#store the word inside t6 to Memory[val(t4)+4]
+        condition:					#first condition checked
+            addi t3, t3, 1				#adding val(t3)+1 and stored in t3
+            addi t4, t4, 4				#adding val(t4)+4 and stored in t4
+            jal loop2					#jump and link to loop2 while storing pc+4 into ra
+        exitcondition:					#the exiting condition
+            addi t2, t2, 1				#adding val(t2) with 1 and storing it in t2
+            jal loop1					#jump and link to loop1 while storing pc+4 into ra
+        terminate:					#terminate the program
+            li v0 , 10					#condition set for system call
+		ecall
         
-
+##-----------------------------------##
 
 
 
