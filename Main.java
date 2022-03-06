@@ -10,7 +10,7 @@ public class Main {
     public static void main(String[] args) throws IOException {
 
         Testing testing = new Testing();
-        File file = new File("add.txt");
+        File file = new File("BubbleSort.txt");
         Scanner Reader = new Scanner(file);
         String[] final_array = new String[10];
         for(int i=0; i<10; i++){
@@ -22,40 +22,53 @@ public class Main {
         String ch ="x";
         while (Reader.hasNextLine()){
             String x = Reader.nextLine();
+            x = x.replace("#", " # ");
             String[] xc = x.split(" ");
+            
             int i=0;
             for(i=0; i<xc.length; i++){
                 if(!xc[i].equals("")){
+                    if(xc[i].equals("#") && !(ch.equals("x"))){
+                        break;
+                    }else if(xc[i].equals("#")){
+                        ch = "comment";
+                        break;
+                    }
                     ch = xc[i];
                     break;
                 }
             }
-            if(ch.equals(null)||ch.equals("x")){
+            if(ch.equals("comment")){
+                Memory.pc++;
                 continue;
-            }
-            if(ch.equals(".text")){
-                onlytext=true;
-            }
-            boolean label = false;
-            StringBuilder stringBuilder = new StringBuilder("");
-            if(onlytext&&ch.charAt(ch.length() - 1) == ':') {
-                label = true;
-                StringBuilder str = new StringBuilder(ch);
-                ch=str.deleteCharAt(str.length()-1).toString();
-                Hashmap.labelHash.put(ch,Memory.pc);
-                xc[i]="";
-                for (int f=0;f<xc.length;++f){
-                    stringBuilder.append(xc[f]);
-                    stringBuilder.append(" ");
+            }else{
+                if(ch.equals(null)||ch.equals("x")){
+                    continue;
                 }
+                if(ch.equals(".text")){
+                    onlytext=true;
+                }
+                boolean label = false;
+                StringBuilder stringBuilder = new StringBuilder("");
+                if(onlytext&&ch.charAt(ch.length() - 1) == ':') {
+                    label = true;
+                    StringBuilder str = new StringBuilder(ch);
+                    ch=str.deleteCharAt(str.length()-1).toString();
+                    Hashmap.labelHash.put(ch,Memory.pc);
+                    xc[i]="";
+                    for (int f=0;f<xc.length;++f){
+                        stringBuilder.append(xc[f]);
+                        stringBuilder.append(" ");
+                    }
+                }
+                if(label) {
+                    Hashmap.pcHash.put(Memory.pc,stringBuilder.toString());
+                }
+                else{
+                    Hashmap.pcHash.put(Memory.pc,x);
+                }
+                Memory.pc++;
             }
-            if(label) {
-                Hashmap.pcHash.put(Memory.pc,stringBuilder.toString());
-            }
-            else{
-                Hashmap.pcHash.put(Memory.pc,x);
-            }
-            Memory.pc++;
         }
 
         Instruction.counter = Memory.pc;
@@ -66,6 +79,7 @@ public class Main {
         while(Memory.pc< Instruction.counter){
             int a = index;
             String data = Hashmap.pcHash.get(Memory.pc);
+            data = data.replace("#", " # ");
             String[] check = data.split(" ");
             String final_check = "0";//
             for(int i=0; i<check.length; i++){
@@ -74,7 +88,7 @@ public class Main {
                     break;
                 }
             }
-            if(final_check.equals(null) || final_check.equals("0")){
+            if(final_check.equals(null) || final_check.equals("0") || final_check.equals("#")){
                 Memory.pc++;
                 continue;
             }
@@ -124,6 +138,9 @@ public class Main {
                 String[] array = data.split(" ");
                 for(int i=0; i<array.length; i++){
                     if(!array[i].equals("")){
+                        if(array[i].equals("#")){
+                            break;
+                        }
                         final_array[index] = array[i];
                         index++;
                     }
@@ -131,12 +148,13 @@ public class Main {
                 System.out.println(final_array[0]);
                 Instruction in = Hashmap.insHash.get(final_array[0]);
                 in.Op(final_array[1], final_array[2], final_array[3]);
-
+                index = a + 4;
             }
             Memory.pc++;
         }
 
         Testing.printRegisters();
+        Memory.printMemory();
     }
 }
 
@@ -520,6 +538,24 @@ class Memory{
     static byte[] Mem = new byte[4096];
     static int i = 0;
     static int pc = 0;
+    static void printMemory(){
+        System.out.println("--------------------Memory--------------------");
+        for(int j=0; j<i; j=j+4){
+            int A = Memory.Mem[j] << 24 | (Memory.Mem[j+1] & 0xFF) << 16 | (Memory.Mem[j+2] & 0xFF) << 8 | (Memory.Mem[j+3] & 0xFF);
+            String s = Integer.toHexString(j);
+            System.out.print("0x");
+            for(int k=0; k<(8-s.length()); k++){
+                if(s.equals("0")){
+                    System.out.print("0000000");
+                    break;
+                }else{
+                    System.out.print("0");
+                }
+            }
+            System.out.print(s + "        -------->        ");
+            System.out.println(A);
+        }
+    }
 }
 abstract class Instruction{
     int inc;
