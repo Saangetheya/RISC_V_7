@@ -1,158 +1,23 @@
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Scanner;
 
-public class PHASE_1 {
+public class Main {
 
     public static void main(String[] args) throws IOException {
+        File file = new File("code.txt");
+        Scanner sc = new Scanner(file);
+        String code="";
+        Testing init = new Testing();
+        while (sc.hasNextLine()){
+            code=sc.nextLine();
+            String A[] = code.split(" ",2);
+            Instruction i = Hashmap.insHash.get(A[0]);
+            String B[] = A[1].split(",");
+            i.Op(B[0],B[1],B[2]);
 
-        Testing testing = new Testing();
-        File file = new File("BubbleSort.txt");
-        Scanner Reader = new Scanner(file);
-        String[] final_array = new String[10];
-        for(int i=0; i<10; i++){
-            final_array[i] = "1";
         }
-
-        ArrayList<String> final_array1 = new ArrayList<String>();
-        boolean onlytext=false;
-        String ch ="x";
-        while (Reader.hasNextLine()){
-            String x = Reader.nextLine();
-            x = x.replace("#", " # ");
-            x = x.replace("\t"," ");
-            String[] xc = x.split(" ");
-
-            int i=0;
-            for(i=0; i<xc.length; i++){
-                if(!xc[i].equals("")){
-                    if(xc[i].equals("#") && !(ch.equals("x"))){
-                        break;
-                    }else if(xc[i].equals("#")){
-                        ch = "comment";
-                        break;
-                    }
-                    ch = xc[i];
-                    break;
-                }
-            }
-            if(ch.equals("comment")){
-                Memory.pc++;
-                continue;
-            }else{
-                if(ch.equals(null)||ch.equals("x")){
-                    continue;
-                }
-                if(ch.equals(".text")){
-                    onlytext=true;
-                }
-                boolean label = false;
-                StringBuilder stringBuilder = new StringBuilder("");
-                if(onlytext&&ch.charAt(ch.length() - 1) == ':') {
-                    label = true;
-                    StringBuilder str = new StringBuilder(ch);
-                    ch=str.deleteCharAt(str.length()-1).toString();
-                    Hashmap.labelHash.put(ch,Memory.pc);
-                    xc[i]="";
-                    for (int f=0;f<xc.length;++f){
-                        stringBuilder.append(xc[f]);
-                        stringBuilder.append(" ");
-                    }
-                }
-                if(label) {
-                    Hashmap.pcHash.put(Memory.pc,stringBuilder.toString());
-                }
-                else{
-                    Hashmap.pcHash.put(Memory.pc,x);
-                }
-                Memory.pc++;
-            }
-        }
-
-        Instruction.counter = Memory.pc;
-        Memory.pc=0;
-        int index = 0;
-        int TextFound = 0;
-        int DataFound = 0;
-        while(Memory.pc< Instruction.counter){
-            int a = index;
-            String data = Hashmap.pcHash.get(Memory.pc);
-            data = data.replace("#", " # ");
-            String[] check = data.split(" ");
-            String final_check = "0";//
-            for(int i=0; i<check.length; i++){
-                if(!check[i].equals("")){
-                    final_check = check[i];
-                    break;
-                }
-            }
-            if(final_check.equals(null) || final_check.equals("0") || final_check.equals("#")){
-                Memory.pc++;
-                continue;
-            }
-            else if(final_check.equals(".text")){
-                TextFound = 1;
-            }
-            else if(DataFound == 1 && TextFound == 0){
-                data = data.replace(",", " ");
-                data = data.replace(":", " ");
-                String[] array = data.split(" ");
-                for(int i=0; i<array.length; i++){
-                    if(!array[i].equals("")){
-                        final_array1.add(array[i]);
-                    }
-                }
-                String s = final_array1.get(0);
-                Hashmap.memHash.put(s, Memory.i);
-                if(final_array1.get(1).equals(".word")){
-                    for(int i=2; i<final_array1.size();i++){
-                        int x = Integer.parseInt(final_array1.get(i));
-                        Memory.Mem[Memory.i]=(byte)(x>>24);
-                        Memory.Mem[Memory.i + 1]=(byte)(x>>16);
-                        Memory.Mem[Memory.i + 2]=(byte)(x>>8);
-                        Memory.Mem[Memory.i + 3]=(byte)(x);
-                        Memory.i+=4;
-                    }
-                }
-                else if(final_array1.get(1).equals(".byte")){
-                    for(int i=2; i<final_array1.size();i++){
-                        int x = Integer.parseInt(final_array1.get(i));
-                        Memory.Mem[Memory.i]=(byte)(x);
-                        Memory.i++;
-                    }
-                }
-                final_array1.clear();
-            }
-            else if(final_check.equals(".data")){
-                DataFound = 1;
-            }
-            else if(TextFound == 1){
-                index=0;
-                data = data.replace(",", " ");
-                data = data.replace("(", " ");
-                data = data.replace(")", " ");
-                String[] array = data.split(" ");
-                for(int i=0; i<array.length; i++){
-                    if(!array[i].equals("")){
-                        if(array[i].equals("#")){
-                            break;
-                        }
-                        final_array[index] = array[i];
-                        index++;
-                    }
-                }
-                Instruction in = Hashmap.insHash.get(final_array[0]);
-                in.Op(final_array[1], final_array[2], final_array[3]);
-                index = a + 4;
-            }
-            Memory.pc++;
-        }
-
-        Testing.printRegisters();
-        Memory.printMemory();
     }
 }
 
@@ -198,7 +63,7 @@ class Testing {
     static Register r29 = new Register(29,0);
     static Register r30 = new Register(30,0);
     static Register r31 = new Register(31,0);
-    /*-----------------------Arithmetic code 0---------------------------*/
+
     static Instruction add = new Instruction(0) {
         @Override
         void Op(String a, String b, String c) {
@@ -208,8 +73,7 @@ class Testing {
             Hashmap.regHash.get(a).regInt=A;
         }
     };
-
-    static Instruction sub = new Instruction(0) {
+    static Instruction sub = new Instruction(1) {
         @Override
         void Op(String a, String b, String c) {
             int B = Hashmap.regHash.get(b).regInt;
@@ -218,228 +82,34 @@ class Testing {
             Hashmap.regHash.get(a).regInt=A;
         }
     };
-    static Instruction addi = new Instruction(0){
-        @Override
-        void Op(String a, String b, String c){
-            int B = Hashmap.regHash.get(b).regInt;
-            int C = Integer.parseInt(c);
-            Hashmap.regHash.get(a).regInt = B + C;
-        }
-    };
-    static Instruction mul = new Instruction(0){
-        @Override
-        void Op(String a, String b, String c){
-            int B = Hashmap.regHash.get(b).regInt;
-            int C = Hashmap.regHash.get(c).regInt;
-            int A = B * C;
-            Hashmap.regHash.get(a).regInt=A;
-        }
-    };
-    /*-----------------------Data transfer code 1---------------------------*/
-    static Instruction lw = new Instruction(1) {
+    static Instruction lw = new Instruction(2) {
         @Override
         void Op(String a, String b, String c) {
-            int B,X,C;
-            try {
-                B = Integer.parseInt(b);
-                C = Hashmap.regHash.get(c).regInt;
-                X = C + B;
-            }
-            catch (NumberFormatException e) {
-                B=Hashmap.memHash.get(b);
-                C=0;
-                if(Hashmap.regHash.containsKey(c)){
-                    C = Hashmap.regHash.get(c).regInt;
-                }
-                X = B + C;
-            }
-            int A = Memory.Mem[X] << 24 | (Memory.Mem[X+1] & 0xFF) << 16 | (Memory.Mem[X+2] & 0xFF) << 8 | (Memory.Mem[X+3] & 0xFF);
-            Hashmap.regHash.get(a).regInt= A;
+            int B = Hashmap.regHash.get(b).regInt;
+
         }
     };
-    static Instruction sw = new Instruction(1) {
-        @Override
-        void Op(String a, String b, String c) {
-            int B,X,C;
-            try {
-                B = Integer.parseInt(b);
-                C = Hashmap.regHash.get(c).regInt;
-                X = C + B;
-            }
-            catch (NumberFormatException e) {
-                B=Hashmap.memHash.get(b);
-                C=0;
-                if(Hashmap.regHash.containsKey(c)){
-                    C = Hashmap.regHash.get(c).regInt;
-                }
-                X = B + C;
-            }
-            int A = Hashmap.regHash.get(a).regInt;
-            Memory.Mem[X]=(byte)(A>>24);
-            Memory.Mem[X+1]=(byte)(A>>16);
-            Memory.Mem[X+2]=(byte)(A>>8);
-            Memory.Mem[X+3]=(byte)(A);
-        }
-    };
-    /*-----------------------Data transfer code 2---------------------------*/
-    static Instruction mv = new Instruction(2) {
+    static Instruction move = new Instruction(3) {
         @Override
         void Op(String a, String b, String c) {
             int B = Hashmap.regHash.get(b).regInt;
             Hashmap.regHash.get(a).regInt=B;
         }
     };
-    static Instruction li = new Instruction(2) {
+    static Instruction li = new Instruction(4) {
         @Override
         void Op(String a, String b, String c) {
             int B = Integer.parseInt(b);
             Hashmap.regHash.get(a).regInt=B;
         }
     };
-    static Instruction la = new Instruction(2) {
-        @Override
-        void Op(String a, String b, String c){
-            int address = Hashmap.memHash.get(b);
-            Hashmap.regHash.get(a).regInt = address;
-        }
-    };
-    /*-----------------------Unconditional jump code 3---------------------------*/
     static Instruction j = new Instruction(3) {
         @Override
         void Op(String a, String b, String c) {
-            int pcn = Hashmap.labelHash.get(a);
-            Memory.pc=pcn-1;
+            int B = Hashmap.regHash.get(b).regInt;
+            Hashmap.regHash.get(a).regInt=B;
         }
     };
-    static Instruction jr = new Instruction(3) {
-        @Override
-        void Op(String a, String b, String c) {
-            int A = Hashmap.regHash.get(a).regInt;
-            Memory.pc=A-1;
-        }
-    };
-    static Instruction jal = new Instruction(3) {
-        @Override
-        void Op(String a, String b, String c) {
-            int A = Hashmap.labelHash.get(a);
-            r31.regInt=Memory.pc+1;
-            Memory.pc=A-1;
-        }
-    };
-    /*-----------------------Conditional Branch code 4---------------------------*/
-    static Instruction beq = new Instruction(4) {
-        @Override
-        void Op(String a, String b, String c) {
-            int A = Hashmap.regHash.get(a).regInt;
-            int B;
-            try {
-                B=Integer.parseInt(b);
-            }
-            catch (NumberFormatException e){
-                B = Hashmap.regHash.get(b).regInt;
-            }
-            int C = Hashmap.labelHash.get(c);
-            if(A==B){
-                Memory.pc=C-1;
-            }
-        }
-    };
-    static Instruction bne = new Instruction(4) {
-        @Override
-        void Op(String a, String b, String c) {
-            int A = Hashmap.regHash.get(a).regInt;
-            int B;
-            try {
-                B=Integer.parseInt(b);
-            }
-            catch (NumberFormatException e){
-                B = Hashmap.regHash.get(b).regInt;
-            }
-            int C = Hashmap.labelHash.get(c);
-            if(A!=B){
-                Memory.pc=C-1;
-            }
-        }
-    };
-    static Instruction bgt = new Instruction(4) {
-        @Override
-        void Op(String a, String b, String c) {
-            int A = Hashmap.regHash.get(a).regInt;
-            int B;
-            try {
-                B=Integer.parseInt(b);
-            }
-            catch (NumberFormatException e){
-                B = Hashmap.regHash.get(b).regInt;
-            }
-            int C = Hashmap.labelHash.get(c);
-            if(A>B){
-                Memory.pc=C-1;
-            }
-        }
-    };
-    static Instruction bge = new Instruction(4) {
-        @Override
-        void Op(String a, String b, String c) {
-            int A = Hashmap.regHash.get(a).regInt;
-            int B;
-            try {
-                B=Integer.parseInt(b);
-            }
-            catch (NumberFormatException e){
-                B = Hashmap.regHash.get(b).regInt;
-            }
-            int C = Hashmap.labelHash.get(c);
-            if(A>=B){
-                Memory.pc=C-1;
-            }
-        }
-    };
-    static Instruction blt = new Instruction(4) {
-        @Override
-        void Op(String a, String b, String c) {
-            int A = Hashmap.regHash.get(a).regInt;
-            int B;
-            try {
-                B=Integer.parseInt(b);
-            }
-            catch (NumberFormatException e){
-                B = Hashmap.regHash.get(b).regInt;
-            }
-            int C = Hashmap.labelHash.get(c);
-            if(A<B){
-                Memory.pc=C-1;
-            }
-        }
-    };
-    static Instruction ble = new Instruction(4) {
-        @Override
-        void Op(String a, String b, String c) {
-            int A = Hashmap.regHash.get(a).regInt;
-            int B;
-            try {
-                B=Integer.parseInt(b);
-            }
-            catch (NumberFormatException e){
-                B = Hashmap.regHash.get(b).regInt;
-            }
-            int C = Hashmap.labelHash.get(c);
-            if(A<=B){
-                Memory.pc=C-1;
-            }
-        }
-    };
-    /*-----------------------System Calls code 5---------------------------*/
-    static Instruction ecall = new Instruction(5) {
-        @Override
-        void Op(String a, String b, String c) {
-            int sys = Hashmap.regHash.get("v0").regInt;
-            if(sys==10){
-                Memory.pc=Instruction.counter;
-            }
-        }
-    };
-
     Testing(){
         Hashmap.regHash.put("r0",r0);
         Hashmap.regHash.put("at",r1);
@@ -476,22 +146,6 @@ class Testing {
 
         Hashmap.insHash.put("add",add);
         Hashmap.insHash.put("sub",sub);
-        Hashmap.insHash.put("addi",addi);
-        Hashmap.insHash.put("lw",lw);
-        Hashmap.insHash.put("sw",sw);
-        Hashmap.insHash.put("li",li);
-        Hashmap.insHash.put("mv",mv);
-        Hashmap.insHash.put("j",j);
-        Hashmap.insHash.put("jr",jr);
-        Hashmap.insHash.put("jal",jal);
-        Hashmap.insHash.put("la", la);
-        Hashmap.insHash.put("beq",beq);
-        Hashmap.insHash.put("bne",bne);
-        Hashmap.insHash.put("bge",bge);
-        Hashmap.insHash.put("bgt",bgt);
-        Hashmap.insHash.put("blt", blt);
-        Hashmap.insHash.put("ble",ble);
-        Hashmap.insHash.put("ecall",ecall);
     }
 
     public static void printRegisters(){
@@ -534,25 +188,8 @@ class Testing {
 
 class Memory{
     static byte[] Mem = new byte[4096];
-    static int i = 0;
-    static int pc = 0;
-    static void printMemory(){
-        System.out.println("--------------------Memory--------------------");
-        for(int j=0; j<i; j=j+4){
-            int A = Memory.Mem[j] << 24 | (Memory.Mem[j+1] & 0xFF) << 16 | (Memory.Mem[j+2] & 0xFF) << 8 | (Memory.Mem[j+3] & 0xFF);
-            String s = Integer.toHexString(j);
-            System.out.print("0x");
-            for(int k=0; k<(8-s.length()); k++){
-                if(s.equals("0")){
-                    System.out.print("0000000");
-                    break;
-                }else{
-                    System.out.print("0");
-                }
-            }
-            System.out.print(s + "        -------->        ");
-            System.out.println(A);
-        }
+    Memory(){
+
     }
 }
 abstract class Instruction{
@@ -561,13 +198,10 @@ abstract class Instruction{
         inc=t;
     }
     abstract void Op(String a, String b, String c);
-    static int counter=0;
 }
 
 class Hashmap {
     static HashMap<String,Register> regHash = new HashMap<>();
     static HashMap<String,Instruction> insHash = new HashMap<>();
-    static HashMap<String,Integer> memHash = new HashMap<>();
-    static HashMap<Integer,String> pcHash = new HashMap<>();
-    static HashMap<String,Integer> labelHash = new HashMap<>();
+    static HashMap<String,Memory> memHash = new HashMap<>();
 }
