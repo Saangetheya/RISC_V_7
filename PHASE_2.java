@@ -1,4 +1,5 @@
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -21,8 +22,8 @@ import java.util.LinkedList;
 
 public class PHASE_2 {
 
-    public static void main(String[] args) throws IOException {
-        
+    public static void main(String[] args) throws IOException, FileNotFoundException {
+
         int IF_var = 0;
         int ID_RF_var = 0;
         int EX_var = 0;
@@ -34,6 +35,7 @@ public class PHASE_2 {
         int des_reg_index = 0;
         int EX_buffer;
         int MEM_buffer;
+        int mem_location = -1;
         int[] result = new int[100];
         int res_var = 0;
         String oper = "0";
@@ -43,13 +45,11 @@ public class PHASE_2 {
         int EX_counter = 0;
         int MEM_counter = 0;
         int WB_counter = 0;
+        int No_Of_Ins = 0;
         String[] IF_array = new String[4];
         for(int i=0; i<4; i++){
             IF_array[i] = "0";
         }
-
-
-
         Testing testing = new Testing();
         File file = new File("basic.txt");
         Scanner Reader = new Scanner(file);
@@ -62,77 +62,81 @@ public class PHASE_2 {
         boolean onlytext=false;
         String ch ="x";
         while (Reader.hasNextLine()){
-            String x = Reader.nextLine();
-            x = x.replace("#", " # ");
-            x = x.replace("\t"," ");
+            StringBuilder stringBuilder1 = new StringBuilder(Reader.nextLine());
+            if(stringBuilder1.isEmpty()){
+                continue;
+            }
+            for (int i=0;i<stringBuilder1.length();i++){
+                if(stringBuilder1.charAt(i)=='#'){
+                    stringBuilder1.replace(i,stringBuilder1.length(),"");
+                }
+            }
+            if(stringBuilder1.isEmpty()){
+                continue;
+            }
+            String x = stringBuilder1.toString().replace("\t"," ");
+
             String[] xc = x.split(" ");
 
             int i=0;
             for(i=0; i<xc.length; i++){
                 if(!xc[i].equals("")){
-                    if(xc[i].equals("#") && !(ch.equals("x"))){
-                        break;
-                    }else if(xc[i].equals("#")){
-                        ch = "comment";
-                        break;
-                    }
                     ch = xc[i];
                     break;
                 }
             }
-            if(ch.equals("comment")){
-                Memory.pc++;
+            if(ch == null ||ch.equals("x")){
                 continue;
-            }else{
-                if(ch.equals(null)||ch.equals("x")){
-                    continue;
-                }
-                if(ch.equals(".text")){
-                    onlytext=true;
-                }
-                boolean label = false;
-                StringBuilder stringBuilder = new StringBuilder("");
-                if(onlytext&&ch.charAt(ch.length() - 1) == ':') {
-                    label = true;
-                    StringBuilder str = new StringBuilder(ch);
-                    ch=str.deleteCharAt(str.length()-1).toString();
-                    Hashmap.labelHash.put(ch,Memory.pc);
-                    xc[i]="";
-                    for (int f=0;f<xc.length;++f){
-                        stringBuilder.append(xc[f]);
-                        stringBuilder.append(" ");
-                    }
-                }
-                if(label) {
-                    Hashmap.pcHash.put(Memory.pc,stringBuilder.toString());
-                }
-                else{
-                    Hashmap.pcHash.put(Memory.pc,x);
-                }
-                Memory.pc++;
             }
+            if(ch.equals(".text")){
+                onlytext=true;
+                Total_Instruction.begintext=Memory.pc;
+            }
+            boolean label = false;
+            StringBuilder stringBuilder = new StringBuilder("");
+            if(onlytext&&ch.charAt(ch.length() - 1) == ':') {
+                label = true;
+                StringBuilder str = new StringBuilder(ch);
+                ch=str.deleteCharAt(str.length()-1).toString();
+                Hashmap.labelHash.put(ch,Memory.pc);
+                xc[i]="";
+                for (String s : xc) {
+                    stringBuilder.append(s);
+                    stringBuilder.append(" ");
+                }
+            }
+            if(label) {
+                Hashmap.pcHash.put(Memory.pc,stringBuilder.toString());
+            }
+            else{
+                Hashmap.pcHash.put(Memory.pc,x);
+            }
+            Memory.pc++;
         }
 
         Total_Instruction.counter = Memory.pc;
+        No_Of_Ins = Total_Instruction.counter - Total_Instruction.begintext - 1;
         Memory.pc=0;
         int index = 0;
         int TextFound = 0;
         int DataFound = 0;
-        System.out.println("*****" + Total_Instruction.counter + "****");
+        System.out.println("***" + Memory.pc + "***");
+        System.out.println("&&&" + Total_Instruction.counter + "&&&");
+        System.out.println("&&&" + Total_Instruction.begintext + "&&&");
+        System.out.println(No_Of_Ins);
         while(Memory.pc< Total_Instruction.counter){
-            System.out.println("Memory.pc = " + Memory.pc);
+            //System.out.println(Memory.pc);
             int a = index;
             String data = Hashmap.pcHash.get(Memory.pc);
-            data = data.replace("#", " # ");
             String[] check = data.split(" ");
-            String final_check = "0";//
-            for(int i=0; i<check.length; i++){
-                if(!check[i].equals("")){
-                    final_check = check[i];
+            String final_check = "0";
+            for (String value : check) {
+                if (!value.equals("")) {
+                    final_check = value;
                     break;
                 }
             }
-            if(final_check.equals(null) || final_check.equals("0") || final_check.equals("#")){
+            if(final_check.equals("0")){
                 Memory.pc++;
                 continue;
             }
@@ -140,12 +144,13 @@ public class PHASE_2 {
                 TextFound = 1;
             }
             else if(DataFound == 1 && TextFound == 0){
+                // System.out.println(Memory.pc);
                 data = data.replace(",", " ");
                 data = data.replace(":", " ");
                 String[] array = data.split(" ");
-                for(int i=0; i<array.length; i++){
-                    if(!array[i].equals("")){
-                        final_array1.add(array[i]);
+                for (String value : array) {
+                    if (!value.equals("")) {
+                        final_array1.add(value);
                     }
                 }
                 String s = final_array1.get(0);
@@ -173,198 +178,267 @@ public class PHASE_2 {
                 DataFound = 1;
             }
             else if(TextFound == 1){
-                index=0;
-                data = data.replace(",", " ");
-                data = data.replace("(", " ");
-                data = data.replace(")", " ");
-                String[] array = data.split(" ");
-                
-                // Instruction in = Hashmap.insHash.get(final_array[0]);
-                // in.Op(final_array[1], final_array[2], final_array[3]);
-                // index = a + 4;
-                if(IF_var == 0){
-                    // Instruction Fetch
-                    index = 0;
-                    if(IF_counter<Total_Instruction.counter){
-                        for(int i=0; i<array.length; i++){
-                            if(!array[i].equals("")){
-                                if(array[i].equals("#")){
-                                    break;
+                while(Memory.pc < Total_Instruction.counter || WB_counter < No_Of_Ins){
+                    
+                    
+                        index=0;
+                        data = data.replace(",", " ");
+                        data = data.replace("(", " ");
+                        data = data.replace(")", " ");
+                        String[] array = data.split(" ");
+                    
+                    // Instruction in = Hashmap.insHash.get(final_array[0]);
+                    // in.Op(final_array[1], final_array[2], final_array[3]);
+                    // index = a + 4;
+                    if(IF_var == 0){
+                        // Instruction Fetch
+                        index = 0;
+                        if(IF_counter<No_Of_Ins){
+                            for(int i=0; i<array.length; i++){
+                                if(!array[i].equals("")){
+                                    if(array[i].equals("#")){
+                                        break;
+                                    }
+                                    IF_array[index] = array[i];
+                                    index++;
                                 }
-                                IF_array[index] = array[i];
-                                index++;
-                            }
                                 if(index == 4){
                                     break;
                                 }
+                            }
+                            IF_counter++;
+                            IF_var = 1;
                         }
-                        IF_counter++;
-                        IF_var = 1;
+                        System.out.println("------" + IF_array[3] + "----------");
                     }
-                    System.out.println("------" + IF_array[3] + "----------");
+                    else if(ID_RF_var == 0){
+
+                        // Instruction Decode / Register Fetch
+                        if(ID_RF_counter<No_Of_Ins){
+                            oper = IF_array[0];
+                            if(oper == "addi" || oper == "muli"){
+                                num2 = Integer.parseInt(IF_array[3]);
+                            }else if(oper == "lw" || oper == "sw"){
+                                if(Hashmap.memHash.containsKey(array[3])){
+                                    num2 = Hashmap.memHash.get(array[3]);
+                                }else{
+                                    num2 = Hashmap.regHash.get(array[3]).regInt;
+                                }
+                            }
+                            else if(oper == "add" || oper == "sub" || oper == "mul"){
+                                num2 = Hashmap.regHash.get(IF_array[3]).regInt;
+                            }
+                            // System.out.println("------IF_array[2]---------");
+                            if(oper == "add" || oper == "sub" || oper == "mul" || oper == "addi" || oper == "muli"){
+                                num1 = Hashmap.regHash.get(IF_array[2]).regInt;
+                                destination_reg[des_reg_index+1] = IF_array[1];
+                            }else if(oper == "lw" || oper == "sw"){
+                                num1 = Integer.parseInt(IF_array[2]);
+                            }
+                            destination_reg[des_reg_index] = IF_array[1];
+                            
+                            ID_RF_var = 1;
+                            ID_RF_counter++;
+                        }
+                        // Instruction Fetch
+                        index = 0;
+                        if(IF_counter < No_Of_Ins){
+                            for(int i=0; i<array.length; i++){
+                                if(!array[i].equals("")){
+                                    if(array[i].equals("#")){
+                                        break;
+                                    }
+                                    IF_array[index] = array[i];
+                                    index++;
+                                }
+                            }
+                            IF_counter++;
+                        }
+                    }else if(EX_var == 0){
+
+                        // Execute
+                        if(EX_counter < No_Of_Ins){
+                            if(oper == "add" || oper == "sub"|| oper == "mul"){
+                                result[res_var] = Hashmap.ALU_Hash.get(oper).Op(num1, num2);
+                            }
+                            else{
+                                mem_location = Hashmap.ALU_Hash.get(oper).Op(num1, num2);
+                            }
+                            EX_var = 1;
+                            EX_counter++;
+                        }
+
+                        // Instruction Decode and Register Fetch
+                        if(ID_RF_counter < No_Of_Ins){
+                            oper = IF_array[0];
+                            if(oper == "addi" || oper == "muli"){
+                                num2 = Integer.parseInt(IF_array[3]);
+                            }else if(oper == "lw" || oper == "sw"){
+                                if(Hashmap.memHash.containsKey(array[2])){
+                                    num2 = Hashmap.memHash.get(array[2]);
+                                }else{
+                                    num2 = Hashmap.regHash.get(array[2]).regInt;
+                                }
+                            }
+                            else if(oper == "add" || oper == "sub" || oper == "mul"){
+                                num2 = Hashmap.regHash.get(IF_array[3]).regInt;
+                            }
+                            if(oper == "add" || oper == "sub" || oper == "mul" || oper == "addi" || oper == "muli"){
+                                num1 = Hashmap.regHash.get(IF_array[2]).regInt;
+                                destination_reg[des_reg_index+1] = IF_array[1];
+                            }else if(oper == "lw" || oper == "sw"){
+                                num1 = Integer.parseInt(IF_array[2]);
+                            }
+                            ID_RF_counter++;
+                        }
+                        // Instruction Fetch
+                        index = 0;
+                        if(IF_counter < No_Of_Ins){
+                            for(int i=0; i<array.length; i++){
+                                if(!array[i].equals("")){
+                                    if(array[i].equals("#")){
+                                        break;
+                                    }
+                                    IF_array[index] = array[i];
+                                    index++;
+                                }
+                            }
+                            IF_counter++;
+                        }
+                        System.out.println("EX");
+                    }else if(MEM_var == 0){
+                        //System.out.println("MEM");
+                        // Memory
+                        // System.out.println(MEM_counter);
+                        // System.out.println(No_Of_Ins);
+                        if(MEM_counter < No_Of_Ins){
+                            if(mem_location != -1){
+                                int X = mem_location;
+                                result[res_var] = Memory.Mem[X] << 24 | (Memory.Mem[X+1] & 0xFF) << 16 | (Memory.Mem[X+2] & 0xFF) << 8 | (Memory.Mem[X+3] & 0xFF);
+                            }
+                            MEM_counter++;
+                            MEM_var = 1;
+                            mem_location = -1;
+                        }
+                        System.out.println("HEY");
+                        // Execute
+                        if(EX_counter < No_Of_Ins){
+                            result[res_var+1] = Hashmap.ALU_Hash.get(oper).Op(num1, num2);
+                            EX_counter++;
+                        }
+                        // Instruction Decode / Register Fetch
+                        if(ID_RF_counter < No_Of_Ins){
+                            oper = IF_array[0];
+                            if(oper == "addi" || oper == "muli"){
+                                num2 = Integer.parseInt(IF_array[3]);
+                            }else if(oper == "lw" || oper == "sw"){
+                                if(Hashmap.memHash.containsKey(array[2])){
+                                    num2 = Hashmap.memHash.get(array[2]);
+                                }else{
+                                    num2 = Hashmap.regHash.get(array[2]).regInt;
+                                }
+                            }
+                            else if(oper == "add" || oper == "sub" || oper == "mul"){
+                                num2 = Hashmap.regHash.get(IF_array[3]).regInt;
+                            }
+                            if(oper == "add" || oper == "sub" || oper == "mul" || oper == "addi" || oper == "muli"){
+                                num1 = Hashmap.regHash.get(IF_array[2]).regInt;
+                                destination_reg[des_reg_index+1] = IF_array[1];
+                            }else if(oper == "lw" || oper == "sw"){
+                                num1 = Integer.parseInt(IF_array[2]);
+                            }
+                            destination_reg[des_reg_index+2] = IF_array[1];
+
+                            ID_RF_counter++;
+                        }
+                        // Instruction Fetch
+                        index = 0;
+                        if(IF_counter < No_Of_Ins){
+                            for(int i=0; i<array.length; i++){
+                                if(!array[i].equals("")){
+                                    IF_array[index] = array[i];
+                                    index++;
+                                }
+                            }
+                            IF_counter++;
+                        }
+                    }else{
+                        System.out.println("WB");
+                        // Write Back
+                        if(WB_counter<No_Of_Ins){
+                            Hashmap.regHash.get(destination_reg[des_reg_index]).regInt = result[res_var];
+                            res_var++;
+                            WB_counter++;
+                        }
+                        // Memory
+                        if(MEM_counter < No_Of_Ins){
+                            if(mem_location != -1){
+                                int X = mem_location;
+                                result[res_var] = Memory.Mem[X] << 24 | (Memory.Mem[X+1] & 0xFF) << 16 | (Memory.Mem[X+2] & 0xFF) << 8 | (Memory.Mem[X+3] & 0xFF);
+                            }
+                            MEM_counter++;
+                        }
+                        // Execute
+                        if(EX_counter < No_Of_Ins){
+                            if(oper == "add" || oper == "sub" || oper == "mul"){
+                                result[res_var+1] = Hashmap.ALU_Hash.get(oper).Op(num1, num2);
+                                EX_counter++;
+                            }else{
+                                mem_location = Hashmap.ALU_Hash.get(oper).Op(num1, num2);
+                            }
+                        }
+                        // Instruction Decode / Register Fetch
+                        if(ID_RF_counter < No_Of_Ins){
+                            oper = IF_array[0];
+                            if(oper == "addi" || oper == "muli"){
+                                num2 = Integer.parseInt(IF_array[3]);
+                            }else if(oper == "lw" || oper == "sw"){
+                                if(Hashmap.memHash.containsKey(array[2])){
+                                    num2 = Hashmap.memHash.get(array[2]);
+                                }else{
+                                    num2 = Hashmap.regHash.get(array[2]).regInt;
+                                }
+                            }
+                            else if(oper == "add" || oper == "sub" || oper == "mul"){
+                                num2 = Hashmap.regHash.get(IF_array[3]).regInt;
+                            }
+                            if(oper == "add" || oper == "sub" || oper == "mul" || oper == "addi" || oper == "muli"){
+                                num1 = Hashmap.regHash.get(IF_array[2]).regInt;
+                                destination_reg[des_reg_index+1] = IF_array[1];
+                            }else if(oper == "lw" || oper == "sw"){
+                                num1 = Integer.parseInt(IF_array[2]);
+                            }
+                            destination_reg[des_reg_index+2] = IF_array[1];
+
+                            ID_RF_counter++;
+                        }
+                        // Instruction Fetch
+                        index = 0;
+                        if(IF_counter < No_Of_Ins){
+                            for(int i=0; i<array.length; i++){
+                                if(!array[i].equals("")){
+                                    if(array[i].equals("#")){
+                                        break;
+                                    }
+                                    IF_array[index] = array[i];
+                                    index++;
+                                }
+
+                            }
+                            IF_counter++;
+                        }
+                    }
+                    clock++;
+                    Memory.pc++;
                 }
-                else if(ID_RF_var == 0){
-
-                    // Instruction Decode / Register Fetch
-                    if(ID_RF_counter<Total_Instruction.counter){
-                        try{
-                            num2 = Integer.parseInt(IF_array[3]);
-                        }
-                        catch(NumberFormatException e){
-                            num2 = Hashmap.regHash.get(IF_array[3]).regInt;
-                        }
-                        // System.out.println("------IF_array[2]---------");
-                        num1 = Hashmap.regHash.get(IF_array[2]).regInt;
-                        destination_reg[des_reg_index] = IF_array[1];
-                        oper = IF_array[0];
-                        ID_RF_var = 1;
-                        ID_RF_counter++;
-                    }
-                    // Instruction Fetch
-                    index = 0;
-                    if(IF_counter < Total_Instruction.counter){
-                        for(int i=0; i<array.length; i++){
-                            if(!array[i].equals("")){
-                                if(array[i].equals("#")){
-                                    break;
-                                }
-                                IF_array[index] = array[i];
-                                index++;
-                            }
-                        }
-                        IF_counter++;
-                    }
-                }else if(EX_var == 0){
-
-                    // Execute
-                    if(EX_counter < Total_Instruction.counter){
-                        result[res_var] = Hashmap.ALU_Hash.get(oper).Op(num1, num2);
-                        EX_var = 1;
-                        EX_counter++;
-                    }
-
-                    // Instruction Decode and Register Fetch
-                    if(ID_RF_counter < Total_Instruction.counter){
-                        try{
-                            num2 = Integer.parseInt(IF_array[3]);
-                        }
-                        catch(NumberFormatException e){
-                            num2 = Hashmap.regHash.get(IF_array[3]).regInt;
-                        }
-                        num1 = Hashmap.regHash.get(IF_array[2]).regInt;
-                        destination_reg[des_reg_index+1] = IF_array[1];
-                        oper = IF_array[0];
-                        ID_RF_counter++;
-                    }
-                    // Instruction Fetch
-                    index = 0;
-                    if(IF_counter < Total_Instruction.counter){
-                        for(int i=0; i<array.length; i++){
-                            if(!array[i].equals("")){
-                                if(array[i].equals("#")){
-                                    break;
-                                }
-                                IF_array[index] = array[i];
-                                index++;
-                            }
-                        }
-                        IF_counter++;
-                    }
-                }else if(MEM_var == 0){
-                    // Memory
-                    if(MEM_counter < Total_Instruction.counter){
-                        if(Hashmap.CheckIns.get("add") == "ALU"){
-                            continue;
-                        }
-                        MEM_counter++;
-                        MEM_var = 1;
-                    }
-                    // Execute
-                    if(EX_counter < Total_Instruction.counter){
-                        result[res_var+1] = Hashmap.ALU_Hash.get(oper).Op(num1, num2);
-                        EX_counter++;
-                    }
-                    // Instruction Decode / Register Fetch
-                    if(ID_RF_counter < Total_Instruction.counter){
-                        try{
-                            num2 = Integer.parseInt(IF_array[3]);
-                        }
-                        catch(NumberFormatException e){
-                            num2 = Hashmap.regHash.get(IF_array[3]).regInt;
-                        }
-                        num1 = Hashmap.regHash.get(IF_array[3]).regInt;
-                        destination_reg[des_reg_index+2] = IF_array[1];
-                        oper = IF_array[0];
-                        ID_RF_counter++;
-                    }
-                    // Instruction Fetch
-                    index = 0;
-                    if(IF_counter < Total_Instruction.counter){
-                        for(int i=0; i<array.length; i++){
-                            if(!array[i].equals("")){
-                                if(array[i].equals("#")){
-                                    break;
-                                }
-                                IF_array[index] = array[i];
-                                index++;
-                            }
-                        }
-                        IF_counter++;
-                    }
-                }else{
-                    // Write Back
-                    if(WB_counter<Total_Instruction.counter){
-                        Hashmap.regHash.get(destination_reg[des_reg_index]).regInt = result[res_var];
-                        res_var++;
-                        WB_counter++;
-                    }
-                    // Memory
-                    if(MEM_counter < Total_Instruction.counter){
-                        if(Hashmap.CheckIns.get("add") == "ALU"){
-                            continue;
-                        }
-                        MEM_counter++;
-                    }
-                    // Execute
-                    if(EX_counter < Total_Instruction.counter){
-                        result[res_var+1] = Hashmap.ALU_Hash.get(oper).Op(num1, num2);
-                        EX_counter++;
-                    }
-                    // Instruction Decode / Register Fetch
-                    if(ID_RF_counter < Total_Instruction.counter){
-                        try{
-                            num2 = Integer.parseInt(IF_array[3]);
-                        }
-                        catch(NumberFormatException e){
-                            num2 = Hashmap.regHash.get(IF_array[3]).regInt;
-                        }
-                        num1 = Hashmap.regHash.get(IF_array[3]).regInt;
-                        destination_reg[des_reg_index+2] = IF_array[1];
-                        oper = IF_array[0];
-                        ID_RF_counter++;
-                    }
-                    // Instruction Fetch
-                    index = 0;
-                    if(IF_counter < Total_Instruction.counter){
-                        for(int i=0; i<array.length; i++){
-                            if(!array[i].equals("")){
-                                if(array[i].equals("#")){
-                                    break;
-                                }
-                                IF_array[index] = array[i];
-                                index++;
-                            }
-
-                        }
-                        IF_counter++;
-                    }
-                }
-                clock++;
-
             }
-            Memory.pc++;
+            System.out.println("Hello");
+            if(Memory.pc < Total_Instruction.counter){
+                Memory.pc++;
+            }
         }
         Testing.printRegisters();
+        System.out.println(WB_counter);
         System.out.println("No. Of Clock cycles: " + clock);
         Memory.printMemory();
     }
@@ -670,7 +744,9 @@ class Testing {
         Hashmap.ALU_Hash.put("add",add);
         Hashmap.ALU_Hash.put("sub",sub);
         Hashmap.ALU_Hash.put("mul",mul);
-        
+        Hashmap.ALU_Hash.put("lw", add);
+        Hashmap.ALU_Hash.put("sw", add);
+
         Hashmap.CheckIns.put("add", "ALU");
         Hashmap.CheckIns.put("sub", "ALU");
         Hashmap.CheckIns.put("mul", "ALU");
@@ -768,6 +844,7 @@ abstract class Total_Instruction{
     }
     abstract int Op(int a, int b);
     static int counter=0;
+    static int begintext=0;
 }
 
 class Hashmap {
