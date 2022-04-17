@@ -179,13 +179,16 @@ public class PHASE_2 {
             }
             else if(TextFound == 1){
                 while(Memory.pc < Total_Instruction.counter || WB_counter < No_Of_Ins){
-                    
-                    
+
+                        if(Memory.pc < Total_Instruction.counter){
+                            data = Hashmap.pcHash.get(Memory.pc);
+                        }
                         index=0;
                         data = data.replace(",", " ");
                         data = data.replace("(", " ");
                         data = data.replace(")", " ");
                         String[] array = data.split(" ");
+                        // System.out.println(data);
                     
                     // Instruction in = Hashmap.insHash.get(final_array[0]);
                     // in.Op(final_array[1], final_array[2], final_array[3]);
@@ -209,34 +212,34 @@ public class PHASE_2 {
                             IF_counter++;
                             IF_var = 1;
                         }
-                        System.out.println("------" + IF_array[3] + "----------");
+                        
                     }
                     else if(ID_RF_var == 0){
 
                         // Instruction Decode / Register Fetch
-                        if(ID_RF_counter<No_Of_Ins){
+                        if(ID_RF_counter < No_Of_Ins){
                             oper = IF_array[0];
-                            if(oper == "addi" || oper == "muli"){
+                            System.out.println("EX_oper:" + oper);
+                            System.out.println(IF_array[3]);
+                            if(oper.equals("addi") || oper.equals("muli")){
                                 num2 = Integer.parseInt(IF_array[3]);
-                            }else if(oper == "lw" || oper == "sw"){
-                                if(Hashmap.memHash.containsKey(array[3])){
-                                    num2 = Hashmap.memHash.get(array[3]);
+                            }else if(oper.equals("lw") || oper.equals("sw")){
+                                if(Hashmap.memHash.containsKey(IF_array[3])){
+                                    num2 = Hashmap.memHash.get(IF_array[3]);
                                 }else{
-                                    num2 = Hashmap.regHash.get(array[3]).regInt;
+                                    num2 = Hashmap.regHash.get(IF_array[3]).regInt;
                                 }
                             }
-                            else if(oper == "add" || oper == "sub" || oper == "mul"){
+                            else if(oper.equals("add") || oper.equals("sub") || oper.equals("mul")){
                                 num2 = Hashmap.regHash.get(IF_array[3]).regInt;
                             }
-                            // System.out.println("------IF_array[2]---------");
-                            if(oper == "add" || oper == "sub" || oper == "mul" || oper == "addi" || oper == "muli"){
+                            if(oper.equals("add") || oper.equals("sub") || oper.equals("mul") || oper.equals("addi") || oper.equals("muli")){
                                 num1 = Hashmap.regHash.get(IF_array[2]).regInt;
-                                destination_reg[des_reg_index+1] = IF_array[1];
-                            }else if(oper == "lw" || oper == "sw"){
+                            }else if(oper.equals("lw") || oper.equals("sw")){
                                 num1 = Integer.parseInt(IF_array[2]);
                             }
                             destination_reg[des_reg_index] = IF_array[1];
-                            
+                            System.out.println(num1 + "***" + num2);
                             ID_RF_var = 1;
                             ID_RF_counter++;
                         }
@@ -254,15 +257,21 @@ public class PHASE_2 {
                             }
                             IF_counter++;
                         }
+                        // System.out.println("---------------");
+                        
                     }else if(EX_var == 0){
 
                         // Execute
+                        System.out.println("---------------");
                         if(EX_counter < No_Of_Ins){
-                            if(oper == "add" || oper == "sub"|| oper == "mul"){
+                            if(oper.equals("add") || oper.equals("sub") || oper.equals("mul") || oper.equals("addi") || oper.equals("muli")){
                                 result[res_var] = Hashmap.ALU_Hash.get(oper).Op(num1, num2);
+                                System.out.println("add");
                             }
                             else{
+                                result[res_var] = Hashmap.ALU_Hash.get(oper).Op(num1, num2);
                                 mem_location = Hashmap.ALU_Hash.get(oper).Op(num1, num2);
+                                System.out.println("lw");
                             }
                             EX_var = 1;
                             EX_counter++;
@@ -271,24 +280,27 @@ public class PHASE_2 {
                         // Instruction Decode and Register Fetch
                         if(ID_RF_counter < No_Of_Ins){
                             oper = IF_array[0];
-                            if(oper == "addi" || oper == "muli"){
+                            System.out.println("EX_oper:" + oper);
+                            if(oper.equals("addi") || oper.equals("muli")){
                                 num2 = Integer.parseInt(IF_array[3]);
-                            }else if(oper == "lw" || oper == "sw"){
-                                if(Hashmap.memHash.containsKey(array[2])){
-                                    num2 = Hashmap.memHash.get(array[2]);
+                            }else if(oper.equals("lw") || oper.equals("sw")){
+                                if(Hashmap.memHash.containsKey(IF_array[3])){
+                                    num2 = Hashmap.memHash.get(IF_array[3]);
                                 }else{
-                                    num2 = Hashmap.regHash.get(array[2]).regInt;
+                                    num2 = Hashmap.regHash.get(IF_array[3]).regInt;
                                 }
                             }
-                            else if(oper == "add" || oper == "sub" || oper == "mul"){
+                            else if(oper.equals("add") || oper.equals("sub") || oper.equals("mul")){
                                 num2 = Hashmap.regHash.get(IF_array[3]).regInt;
                             }
-                            if(oper == "add" || oper == "sub" || oper == "mul" || oper == "addi" || oper == "muli"){
+                            if(oper.equals("add") || oper.equals("sub") || oper.equals("mul") || oper.equals("addi") || oper.equals("muli")){
                                 num1 = Hashmap.regHash.get(IF_array[2]).regInt;
-                                destination_reg[des_reg_index+1] = IF_array[1];
-                            }else if(oper == "lw" || oper == "sw"){
+                                
+                            }else if(oper.equals("lw") || oper.equals("sw")){
                                 num1 = Integer.parseInt(IF_array[2]);
                             }
+                            destination_reg[des_reg_index+1] = IF_array[1];
+                            // System.out.println(num1 + "***" + num2);
                             ID_RF_counter++;
                         }
                         // Instruction Fetch
@@ -305,7 +317,6 @@ public class PHASE_2 {
                             }
                             IF_counter++;
                         }
-                        System.out.println("EX");
                     }else if(MEM_var == 0){
                         //System.out.println("MEM");
                         // Memory
@@ -316,6 +327,7 @@ public class PHASE_2 {
                                 int X = mem_location;
                                 result[res_var] = Memory.Mem[X] << 24 | (Memory.Mem[X+1] & 0xFF) << 16 | (Memory.Mem[X+2] & 0xFF) << 8 | (Memory.Mem[X+3] & 0xFF);
                             }
+                            System.out.println("result[res_var]" + result[res_var] + "..."+ res_var);
                             MEM_counter++;
                             MEM_var = 1;
                             mem_location = -1;
@@ -323,28 +335,39 @@ public class PHASE_2 {
                         System.out.println("HEY");
                         // Execute
                         if(EX_counter < No_Of_Ins){
-                            result[res_var+1] = Hashmap.ALU_Hash.get(oper).Op(num1, num2);
+                            // System.out.println("oper: " + oper);
+                            if(oper.equals("add") || oper.equals("sub")|| oper.equals("mul") || oper.equals("addi") || oper.equals("muli")){
+                                
+                                result[res_var+1] = Hashmap.ALU_Hash.get(oper).Op(num1, num2);
+                                System.out.println("NUM1" + num1 + "NUM2: " + num2);
+                                System.out.println("Executing second instrruction.. add result[res_var] = " + result[res_var] + "res_var: " + res_var);
+                            }
+                            else{//System.out.println(num1 + "----" + num2);
+                                result[res_var+1] = Hashmap.ALU_Hash.get(oper).Op(num1, num2);
+                                System.out.println("Executing second instrruction.. lw result[res_var] = " + result[res_var] + "res_var: " + res_var);
+                                mem_location = Hashmap.ALU_Hash.get(oper).Op(num1, num2);
+                            }
+                            
                             EX_counter++;
                         }
                         // Instruction Decode / Register Fetch
                         if(ID_RF_counter < No_Of_Ins){
                             oper = IF_array[0];
-                            if(oper == "addi" || oper == "muli"){
+                            if(oper.equals("addi") || oper.equals("muli")){
                                 num2 = Integer.parseInt(IF_array[3]);
-                            }else if(oper == "lw" || oper == "sw"){
-                                if(Hashmap.memHash.containsKey(array[2])){
-                                    num2 = Hashmap.memHash.get(array[2]);
+                            }else if(oper.equals("lw") || oper.equals("sw")){
+                                if(Hashmap.memHash.containsKey(IF_array[2])){
+                                    num2 = Hashmap.memHash.get(IF_array[2]);
                                 }else{
-                                    num2 = Hashmap.regHash.get(array[2]).regInt;
+                                    num2 = Hashmap.regHash.get(IF_array[2]).regInt;
                                 }
                             }
-                            else if(oper == "add" || oper == "sub" || oper == "mul"){
+                            else if(oper.equals("add") || oper.equals("sub") || oper.equals("mul")){
                                 num2 = Hashmap.regHash.get(IF_array[3]).regInt;
                             }
-                            if(oper == "add" || oper == "sub" || oper == "mul" || oper == "addi" || oper == "muli"){
+                            if(oper.equals("add") || oper.equals("sub") || oper.equals("mul") || oper.equals("addi") || oper.equals("muli")){
                                 num1 = Hashmap.regHash.get(IF_array[2]).regInt;
-                                destination_reg[des_reg_index+1] = IF_array[1];
-                            }else if(oper == "lw" || oper == "sw"){
+                            }else if(oper.equals("lw") || oper.equals("sw")){
                                 num1 = Integer.parseInt(IF_array[2]);
                             }
                             destination_reg[des_reg_index+2] = IF_array[1];
@@ -363,53 +386,65 @@ public class PHASE_2 {
                             IF_counter++;
                         }
                     }else{
-                        System.out.println("WB");
+                        // System.out.println("WB");
                         // Write Back
                         if(WB_counter<No_Of_Ins){
+                            // System.out.println(res_var);
+                            // System.out.println("res_var: " + result[res_var]);
                             Hashmap.regHash.get(destination_reg[des_reg_index]).regInt = result[res_var];
+                            System.out.println("RESULT:"+ result[res_var]);
                             res_var++;
+                            des_reg_index++;
                             WB_counter++;
                         }
                         // Memory
                         if(MEM_counter < No_Of_Ins){
+                            System.out.println("mem_location:"+ mem_location);
                             if(mem_location != -1){
                                 int X = mem_location;
                                 result[res_var] = Memory.Mem[X] << 24 | (Memory.Mem[X+1] & 0xFF) << 16 | (Memory.Mem[X+2] & 0xFF) << 8 | (Memory.Mem[X+3] & 0xFF);
+                                // System.out.println(MEM_counter + "***" + result[res_var]);
                             }
                             MEM_counter++;
+                            mem_location = -1;
                         }
                         // Execute
                         if(EX_counter < No_Of_Ins){
-                            if(oper == "add" || oper == "sub" || oper == "mul"){
+                            if(oper.equals("add") || oper.equals("sub") || oper.equals("mul") || oper.equals("addi") || oper.equals("muli")){
                                 result[res_var+1] = Hashmap.ALU_Hash.get(oper).Op(num1, num2);
-                                EX_counter++;
-                            }else{
-                                mem_location = Hashmap.ALU_Hash.get(oper).Op(num1, num2);
+                                
                             }
+                            else{
+                                result[res_var+1] = Hashmap.ALU_Hash.get(oper).Op(num1, num2);
+                                mem_location = Hashmap.ALU_Hash.get(oper).Op(num1, num2);
+                                
+                            }
+                            EX_counter++;
                         }
                         // Instruction Decode / Register Fetch
                         if(ID_RF_counter < No_Of_Ins){
                             oper = IF_array[0];
-                            if(oper == "addi" || oper == "muli"){
+                            System.out.println("EX_oper:" + oper);
+                            if(oper.equals("addi") || oper.equals("muli")){
                                 num2 = Integer.parseInt(IF_array[3]);
-                            }else if(oper == "lw" || oper == "sw"){
-                                if(Hashmap.memHash.containsKey(array[2])){
-                                    num2 = Hashmap.memHash.get(array[2]);
+                            }else if(oper.equals("lw") || oper.equals("sw")){
+                                if(Hashmap.memHash.containsKey(IF_array[3])){
+                                    num2 = Hashmap.memHash.get(IF_array[3]);
                                 }else{
-                                    num2 = Hashmap.regHash.get(array[2]).regInt;
+                                    num2 = Hashmap.regHash.get(IF_array[3]).regInt;
                                 }
                             }
-                            else if(oper == "add" || oper == "sub" || oper == "mul"){
+                            else if(oper.equals("add") || oper.equals("sub") || oper.equals("mul")){
                                 num2 = Hashmap.regHash.get(IF_array[3]).regInt;
                             }
-                            if(oper == "add" || oper == "sub" || oper == "mul" || oper == "addi" || oper == "muli"){
+                            if(oper.equals("add") || oper.equals("sub") || oper.equals("mul") || oper.equals("addi") || oper.equals("muli")){
                                 num1 = Hashmap.regHash.get(IF_array[2]).regInt;
-                                destination_reg[des_reg_index+1] = IF_array[1];
-                            }else if(oper == "lw" || oper == "sw"){
+                                
+                            }else if(oper.equals("lw") || oper.equals("sw")){
                                 num1 = Integer.parseInt(IF_array[2]);
                             }
                             destination_reg[des_reg_index+2] = IF_array[1];
-
+                            System.out.println(num1 + "***" + num2);
                             ID_RF_counter++;
                         }
                         // Instruction Fetch
@@ -428,17 +463,18 @@ public class PHASE_2 {
                             IF_counter++;
                         }
                     }
+                    System.out.println("clock:" + clock);
                     clock++;
+                    System.out.println("EX_counter: " +EX_counter);
                     Memory.pc++;
+                    System.out.println(No_Of_Ins);
                 }
             }
-            System.out.println("Hello");
             if(Memory.pc < Total_Instruction.counter){
                 Memory.pc++;
             }
         }
         Testing.printRegisters();
-        System.out.println(WB_counter);
         System.out.println("No. Of Clock cycles: " + clock);
         Memory.printMemory();
     }
@@ -746,6 +782,8 @@ class Testing {
         Hashmap.ALU_Hash.put("mul",mul);
         Hashmap.ALU_Hash.put("lw", add);
         Hashmap.ALU_Hash.put("sw", add);
+        Hashmap.ALU_Hash.put("addi", add);
+        Hashmap.ALU_Hash.put("muli", mul);
 
         Hashmap.CheckIns.put("add", "ALU");
         Hashmap.CheckIns.put("sub", "ALU");
